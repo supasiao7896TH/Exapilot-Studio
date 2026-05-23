@@ -2607,15 +2607,8 @@ function handleToSide(handle) {
 function getOrthogonalPath(p1, p2, kind, offsetX = 0, offsetY = 0, fromSide = 'bottom', toSide = 'top') {
   const STUB = 26; // pixels to travel straight out of node before turning
 
-  // REP edge: always loop back to the left regardless of sides
-  if (kind === 'rep') {
-    const outY  = p1.y + 30 + offsetY;
-    const midX  = Math.min(p1.x, p2.x) - 100 + offsetX;
-    const inY   = p2.y - 30;
-    return { d: `M ${p1.x} ${p1.y} V ${outY} H ${midX} V ${inY} H ${p2.x} V ${p2.y}`,
-             midX, midY: (outY + inY) / 2 };
-  }
-
+  // REP edges use the same orthogonal routing as any other edge —
+  // the connection point is wherever the user drew it (fromSide/toSide preserved).
   const isFromV = fromSide === 'top' || fromSide === 'bottom';
   const isToV   = toSide   === 'top' || toSide   === 'bottom';
 
@@ -4337,13 +4330,9 @@ function App() {
   const updateEdgeKind = (id, kind) => {
     setEdges(es => es.map(e => {
       if (e.id !== id) return e;
-      // Only change the semantic kind+fromHandle — keep fromSide/toSide exactly
-      // as the user originally placed them (don't override physical routing).
-      const fromHandle = kind === 'yes' ? 'yes'
-                       : kind === 'no'  ? 'no'
-                       : kind === 'rep' ? 'rep'
-                       : 'out';
-      return { ...e, kind, fromHandle };
+      // Only change the visual/semantic kind — keep fromHandle (and fromSide/toSide)
+      // exactly as the user originally placed them so the connection point never moves.
+      return { ...e, kind };
     }));
   };
 
