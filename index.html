@@ -3909,6 +3909,7 @@ function ApprovalModal({ onClose, procName, nodes, edges }) {
   const today = new Date().toLocaleDateString('th-TH', { day:'2-digit', month:'2-digit', year:'numeric' });
   const [form, setForm] = React.useState({
     plant:'PTA#1', exapilotNum:'',
+    concept:'',
     createBy:'', createDate:today,
     checkByFM:'', checkDate:today,
     approveSect:'', approveDate:'',
@@ -3962,7 +3963,8 @@ table{border-collapse:collapse;width:100%}
   <div class="fr"><span class="fl">Topic :</span><span>${escH(procName)}</span></div>
   <div class="concept">
     <div class="fl">Concept detail :</div>
-    <div style="margin-top:5px">${stepRows||'<i style="color:#888">(ยังไม่มีขั้นตอน)</i>'}</div>
+    ${form.concept ? `<div style="margin-top:5px;margin-bottom:8px;white-space:pre-wrap;line-height:1.6">${escH(form.concept)}</div><hr style="border:none;border-top:1px dashed #aaa;margin:6px 0 8px"/>` : ''}
+    <div${form.concept?'':' style="margin-top:5px"'}>${stepRows||'<i style="color:#888">(ยังไม่มีขั้นตอน)</i>'}</div>
   </div>
   <div class="sigrow"><div class="sigcell">Create by B/M <span class="sigline">${escH(form.createBy)}</span></div><div class="sigcell">Date <span class="sigline">${escH(form.createDate)}</span></div></div>
   <div class="sigrow"><div class="sigcell">Check by F/M <span class="sigline">${escH(form.checkByFM)}</span></div><div class="sigcell">Date <span class="sigline">${escH(form.checkDate)}</span></div></div>
@@ -4006,7 +4008,8 @@ table{border-collapse:collapse;width:100%}
       `Topic: ${procName}`,
       `Exapilot Num.: ${form.exapilotNum}`,
       '',
-      'Concept detail / Procedure Steps:',
+      'Concept detail :',
+      ...(form.concept ? [form.concept, ''] : []),
       ...steps.map(s=>`${s.num}. [${s.type}] ${s.main}${s.sub?'\n   └─ '+s.sub:''}`),
       '',
       `Create by B/M: ${form.createBy||'_________'}   Date: ${form.createDate||'_________'}`,
@@ -4059,6 +4062,17 @@ table{border-collapse:collapse;width:100%}
 
         {/* Form Fill */}
         <div style={{flex:1,overflowY:'auto',padding:'16px 20px'}}>
+
+          {/* Concept */}
+          <div style={{marginBottom:14}}>
+            <label style={lbl}>📝 Concept / เหตุผลที่ทำ Procedure นี้</label>
+            <textarea
+              style={{...fld, height:72, resize:'vertical', lineHeight:1.6, fontFamily:'inherit'}}
+              value={form.concept}
+              onChange={e=>set('concept',e.target.value)}
+              placeholder="เช่น เนื่องจาก PP-404A เกิดการอุดตันบ่อยๆ จึงได้ทำการ Stop PP-404A เพื่อ NaOH washing"
+            />
+          </div>
 
           {/* Plant + Exapilot Num */}
           <div style={r2}>
