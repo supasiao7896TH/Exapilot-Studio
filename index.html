@@ -1986,11 +1986,11 @@ function resolveValue(tok, tags, vars) {
 
 /* ===== APPROVAL SHEET — Step Traversal & HTML Generator ===== */
 
-const GCM_PTA_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 70" width="130" height="70">
-  <text x="3" y="46" font-family="Arial Black,Impact,sans-serif" font-size="44" font-weight="900" fill="#0D1B6E" font-style="italic" letter-spacing="-1">GCM</text>
-  <text x="14" y="64" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" fill="#00B4D8" letter-spacing="5">PTA</text>
-  <polygon points="94,14 101,2 115,2 122,14 115,26 101,26" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
-  <polygon points="94,38 101,26 115,26 122,38 115,50 101,50" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
+const GCM_PTA_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 75" width="150" height="75">
+  <text x="3" y="48" font-family="Arial Black,Impact,sans-serif" font-size="42" font-weight="900" fill="#0D1B6E" font-style="italic" letter-spacing="-1">GCM</text>
+  <text x="15" y="67" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="700" fill="#00B4D8" letter-spacing="5">PTA</text>
+  <polygon points="116,18 123,6 137,6 144,18 137,30 123,30" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
+  <polygon points="116,42 123,30 137,30 144,42 137,54 123,54" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
 </svg>`;
 
 const escH = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -3938,12 +3938,12 @@ body{font-family:'Sarabun','Tahoma',Arial,sans-serif;font-size:11pt;color:#000;m
 .hdr-title{flex:1;text-align:center;font-size:16pt;font-weight:900;letter-spacing:.5px}
 .fr{padding:4px 10px;border-bottom:1px solid #000;display:flex;align-items:flex-start;gap:6px;min-height:22px}
 .fl{font-weight:700;white-space:nowrap}
-.concept{padding:6px 10px 10px;border-bottom:1px solid #000;min-height:155mm}
-.sigrow{display:flex;border-bottom:1px solid #000}
+.concept{padding:6px 10px 10px;border-bottom:1px solid #000}
+.sigrow{display:flex;border-bottom:1px solid #000;page-break-inside:avoid}
 .sigcell{flex:1;padding:4px 10px;border-right:1px solid #000;min-height:22px}
 .sigcell:last-child{border-right:none}
 .sigline{display:inline-block;min-width:100px;border-bottom:1px solid #000;margin-left:4px}
-.sec2{border-top:2px solid #000}
+.sec2{border-top:2px solid #000;page-break-inside:avoid}
 .cb{display:inline-block;width:12px;height:12px;border:1.5px solid #000;margin-right:5px;text-align:center;font-size:9pt;line-height:12px;vertical-align:middle}
 table{border-collapse:collapse;width:100%}
 .ack th,.ack td{border:1px solid #000;padding:3px 8px;text-align:center}
@@ -3951,7 +3951,7 @@ table{border-collapse:collapse;width:100%}
 .ack td{height:28px}
 .si{margin:2px 0;line-height:1.5}.sn{font-weight:700}
 .ss{color:#444;font-size:10pt;margin-left:26px}
-.formno{text-align:right;font-size:9pt;padding:2px 8px;color:#555;border-top:1px solid #000}
+.formno{position:fixed;bottom:5mm;right:0;font-size:9pt;color:#555;padding-right:14mm}
 </style></head><body>
 <div class="outer">
   <div class="hdr">
@@ -3989,8 +3989,9 @@ table{border-collapse:collapse;width:100%}
     <tr><td>B/M</td><td></td><td></td><td></td><td></td></tr>
     <tr><td>F/M</td><td></td><td></td><td></td><td></td></tr></tbody></table>
   </div>
-  <div class="formno">PE-F-0054-03</div>
-</div></body></html>`;
+</div>
+<div class="formno">PE-F-0054-03</div>
+</body></html>`;
   };
 
   const handlePrint = () => {
