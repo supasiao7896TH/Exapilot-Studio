@@ -1986,11 +1986,18 @@ function resolveValue(tok, tags, vars) {
 
 /* ===== APPROVAL SHEET — Step Traversal & HTML Generator ===== */
 
-const GCM_PTA_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 75" width="130" height="75">
-  <text x="3" y="48" font-family="Arial Black,Impact,sans-serif" font-size="42" font-weight="900" fill="#0D1B6E" font-style="italic" letter-spacing="-1">GCM</text>
-  <text x="12" y="67" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="700" fill="#00B4D8" letter-spacing="5">PTA</text>
-  <polygon points="102,47 108,37 119,37 124,47 119,56 108,56" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
-  <polygon points="102,66 108,56 119,56 124,66 119,75 108,75" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
+const GCM_PTA_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80">
+  <defs>
+    <linearGradient id="gcmg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0D1B6E"/>
+      <stop offset="60%" stop-color="#1858BF"/>
+      <stop offset="100%" stop-color="#3A82C8"/>
+    </linearGradient>
+  </defs>
+  <text x="3" y="50" font-family="Arial Black,Impact,sans-serif" font-size="42" font-weight="900" fill="url(#gcmg)" font-style="italic" letter-spacing="-1">GCM</text>
+  <text x="12" y="71" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="700" fill="#00B4D8" letter-spacing="5">PTA</text>
+  <polygon points="74,58 78,51 86,51 90,58 86,65 78,65" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
+  <polygon points="74,72 78,65 86,65 90,72 86,79 78,79" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
 </svg>`;
 
 const escH = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -3957,7 +3964,7 @@ table{border-collapse:collapse;width:100%}
   <div class="hdr">
     <div>${GCM_PTA_LOGO_SVG}</div>
     <div class="hdr-title">EXAPILOT APPROVEMENT SHEET</div>
-    <div style="width:130px"></div>
+    <div style="width:120px"></div>
   </div>
   <div class="fr"><span class="fl">Plant :</span><span>${escH(form.plant)}</span></div>
   <div class="fr"><span class="fl">Topic :</span><span>${escH(procName)}</span></div>
