@@ -1986,11 +1986,11 @@ function resolveValue(tok, tags, vars) {
 
 /* ===== APPROVAL SHEET — Step Traversal & HTML Generator ===== */
 
-const GCM_PTA_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 75" width="160" height="75">
+const GCM_PTA_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 75" width="130" height="75">
   <text x="3" y="48" font-family="Arial Black,Impact,sans-serif" font-size="42" font-weight="900" fill="#0D1B6E" font-style="italic" letter-spacing="-1">GCM</text>
-  <text x="15" y="67" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="700" fill="#00B4D8" letter-spacing="5">PTA</text>
-  <polygon points="118,22 127,6 145,6 154,22 145,37 127,37" fill="none" stroke="#90D5EA" stroke-width="3"/>
-  <polygon points="118,53 127,37 145,37 154,53 145,68 127,68" fill="none" stroke="#90D5EA" stroke-width="3"/>
+  <text x="12" y="67" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="700" fill="#00B4D8" letter-spacing="5">PTA</text>
+  <polygon points="102,47 108,37 119,37 124,47 119,56 108,56" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
+  <polygon points="102,66 108,56 119,56 124,66 119,75 108,75" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
 </svg>`;
 
 const escH = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -3957,7 +3957,7 @@ table{border-collapse:collapse;width:100%}
   <div class="hdr">
     <div>${GCM_PTA_LOGO_SVG}</div>
     <div class="hdr-title">EXAPILOT APPROVEMENT SHEET</div>
-    <div style="width:160px"></div>
+    <div style="width:130px"></div>
   </div>
   <div class="fr"><span class="fl">Plant :</span><span>${escH(form.plant)}</span></div>
   <div class="fr"><span class="fl">Topic :</span><span>${escH(procName)}</span></div>
