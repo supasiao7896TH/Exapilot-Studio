@@ -2754,10 +2754,8 @@ function NodeView({ node, selected, status, onMouseDown, onSelect, onDelete, onH
               <>
                 <div className={`handle h-yes ${connecting?.fromNode === node.id && connecting?.fromHandle === 'yes' ? 'connecting' : ''}`}
                      onMouseDown={(e) => { e.stopPropagation(); onHandleClick(node.id, 'yes', 0, e); }}/>
-                <div className="handle-label yes">YES</div>
                 <div className={`handle h-no ${connecting?.fromNode === node.id && connecting?.fromHandle === 'no' ? 'connecting' : ''}`}
                      onMouseDown={(e) => { e.stopPropagation(); onHandleClick(node.id, 'no', 0, e); }}/>
-                <div className="handle-label no">NO</div>
               </>
             )}
             {def.handles.out === 'parallel_out' && (
