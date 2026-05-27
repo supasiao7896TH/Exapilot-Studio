@@ -1984,6 +1984,94 @@ function resolveValue(tok, tags, vars) {
   return t; // fallback string
 }
 
+/* ===== APPROVAL SHEET — Step Traversal & HTML Generator ===== */
+
+const GCM_PTA_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 70" width="130" height="70">
+  <text x="3" y="46" font-family="Arial Black,Impact,sans-serif" font-size="44" font-weight="900" fill="#0D1B6E" font-style="italic" letter-spacing="-1">GCM</text>
+  <text x="14" y="64" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" fill="#00B4D8" letter-spacing="5">PTA</text>
+  <polygon points="94,14 101,2 115,2 122,14 115,26 101,26" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
+  <polygon points="94,38 101,26 115,26 122,38 115,50 101,50" fill="none" stroke="#90D5EA" stroke-width="2.5"/>
+</svg>`;
+
+const escH = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function describeStepForReport(node, allEdges, allNodes) {
+  const cfg = node.config || {};
+  const def = NODE_TYPES[node.type];
+  const getNoPath = () => {
+    const ne = allEdges.find(e => e.from === node.id && e.kind === 'no');
+    if (!ne) return null;
+    const nn = allNodes.find(n => n.id === ne.to);
+    if (!nn) return null;
+    if (nn.type === 'timer') return `วนซ้ำ รอ ${nn.config?.seconds || '?'} วิ แล้วตรวจซ้ำ`;
+    return `ไป ${NODE_TYPES[nn.type]?.shortLabel || nn.type}`;
+  };
+  switch (node.type) {
+    case 'start':    return { icon:'▶',   type:'START',      main:'เริ่มต้น Procedure', sub:null };
+    case 'end':      return { icon:'⏹',   type:'END',        main:'สิ้นสุด Procedure',  sub:null };
+    case 'confirm':  return { icon:'✅',   type:'CONFIRM',    main:cfg.title||'กรุณายืนยัน', sub:cfg.message||null };
+    case 'guidance': return { icon:'💬',   type:'GUIDE',      main:cfg.message||'Guidance', sub:null };
+    case 'alarm':    return { icon:'🔔',   type:'ALARM',      main:cfg.message||'Alarm', sub:`Severity: ${cfg.severity||'HIGH'}` };
+    case 'timer':    return { icon:'⏱',   type:'TIMER',      main:`รอ ${cfg.seconds||'?'} วินาที`, sub:null };
+    case 'andor': case 'and': case 'or': {
+      const mode = cfg.mode||(node.type==='or'?'OR':'AND');
+      const conds = (cfg.conditions||[]).filter(c=>c.left).map(c=>`${c.left} ${c.op||'=='} ${c.right||'?'}`).join(` ${mode} `);
+      const no = getNoPath();
+      return { icon:'🔍', type:`${mode} GATE`, main:`ตรวจสอบ: ${conds||'(ยังไม่กำหนด)'}`, sub:no?`❌ ไม่ผ่าน → ${no}`:null };
+    }
+    case 'output': {
+      const rows = (cfg.outputs||[]).filter(o=>o.tag);
+      return { icon:'📡', type:'OUTPUT', main:`ส่งค่า PCS: ${rows.length?rows.map(o=>`${o.tag}=${o.value??'?'}`).join(', '):'(ยังไม่กำหนด)'}`, sub:null };
+    }
+    case 'blockmode': {
+      const rows = (cfg.modes||(cfg.tag?[{tag:cfg.tag,mode:cfg.mode}]:[])).filter(r=>r.tag);
+      return { icon:'⚙️', type:'BLOCK MODE', main:`เปลี่ยน Mode: ${rows.length?rows.map(r=>`${r.tag}→${r.mode||'AUT'}`).join(', '):'(ยังไม่กำหนด)'}`, sub:null };
+    }
+    case 'branch': {
+      const cases = (cfg.cases||[]).map(c=>c.label||c.value).join(', ');
+      return { icon:'🔀', type:'BRANCH', main:`แยกทาง: ${cfg.variable||'?'} → [${cases}]`, sub:cfg.hasElse?'มี Else':null };
+    }
+    case 'parallel1':    return { icon:'⇶',  type:'PAR SPLIT',  main:`แยก Flow ${cfg.connections||5} สาย`, sub:null };
+    case 'parallel2':    return { icon:'⇶',  type:'PAR JOIN',   main:`รวม Flow ${cfg.joinMode||'OR'} (${cfg.connections||5} สาย)`, sub:null };
+    case 'starttimer':   return { icon:'▶⏱', type:'START TMR',  main:`เริ่มนับ Timer: ${cfg.timerName||'T1'} (preset ${cfg.preset||0}s)`, sub:null };
+    case 'stoptimer':    return { icon:'■⏱', type:'STOP TMR',   main:`หยุด Timer: ${cfg.timerName||'T1'}`, sub:null };
+    case 'pausetimer':   return { icon:'⏸⏱', type:'PAUSE TMR', main:`หยุดชั่วคราว Timer: ${cfg.timerName||'T1'}`, sub:null };
+    case 'restarttimer': return { icon:'↺⏱', type:'RESTART TMR',main:`Restart Timer: ${cfg.timerName||'T1'}`, sub:null };
+    case 'checktime': {
+      const no = getNoPath();
+      return { icon:'⏱🔍', type:'CHK TIME', main:`ตรวจ Timer ${cfg.timerName||'T1'} ครบ ${cfg.threshold||'?'} วิ`, sub:no?`❌ ยังไม่ครบ → ${no}`:null };
+    }
+    case 'subst': return { icon:'📝', type:'SUBST',    main:`กำหนดค่า: ${cfg.left||'?'} = ${cfg.right||'?'}`, sub:null };
+    case 'calc':  return { icon:'🔢', type:'CALC',     main:`คำนวณ: ${cfg.result||'?'} = ${cfg.expr||'?'}`, sub:null };
+    case 'sub':   return { icon:'📋', type:'SUB PROC', main:`เรียก Sub-procedure: ${cfg.name||'?'}`, sub:null };
+    case 'param': return { icon:'📌', type:'PARAM',    main:`Parameter: ${cfg.name||'?'} = ${cfg.value||'?'}`, sub:null };
+    default:
+      return { icon:'◆', type:def?.shortLabel||node.type, main:def?.describe?.(cfg)||node.type, sub:null };
+  }
+}
+
+function generateStepList(nodes, edges) {
+  const start = nodes.find(n => n.type === 'start');
+  if (!start) return [];
+  const steps = [], visited = new Set();
+  let cur = start.id;
+  while (cur && steps.length < 100) {
+    if (visited.has(cur)) break;
+    visited.add(cur);
+    const node = nodes.find(n => n.id === cur);
+    if (!node) break;
+    const info = describeStepForReport(node, edges, nodes);
+    steps.push({ num: steps.length + 1, ...info });
+    if (node.type === 'end') break;
+    const outs = edges.filter(e => e.from === cur);
+    const next = outs.find(e => e.kind === 'yes')
+              || outs.find(e => !e.kind || e.kind === 'out')
+              || outs.find(e => e.kind !== 'no' && e.kind !== 'rep');
+    cur = next?.to ?? null;
+  }
+  return steps;
+}
+
 function isTagName(t) {
   if (!t) return false;
   // DCS-style tag names have at least one dot or all upper with no @ prefix
@@ -3816,6 +3904,210 @@ function MsgModal({ data, onResolve }) {
 }
 
 /* ===================== HELP MODAL ===================== */
+/* ===== Approval Sheet Modal ===== */
+function ApprovalModal({ onClose, procName, nodes, edges }) {
+  const today = new Date().toLocaleDateString('th-TH', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const [form, setForm] = React.useState({
+    plant:'PTA#1', exapilotNum:'',
+    createBy:'', createDate:today,
+    checkByFM:'', checkDate:today,
+    approveSect:'', approveDate:'',
+    testFO:'', testFODate:'',
+    testBM:'', testBMDate:'',
+    checkFM2:'', checkFM2Date:'',
+    approveMng:'', approveMngDate:'',
+    seqComplete:false, notRelateIL:false,
+  });
+  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+  const [copied, setCopied] = React.useState(false);
+  const steps = React.useMemo(() => generateStepList(nodes, edges), [nodes, edges]);
+
+  const buildPrintHTML = () => {
+    const stepRows = steps.map(s =>
+      `<div class="si"><span class="sn">${s.num}.</span> <b>[${escH(s.type)}]</b> ${escH(s.main)}`+
+      (s.sub ? `<div class="ss">└─ ${escH(s.sub)}</div>` : '') + `</div>`
+    ).join('');
+    return `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>EXAPILOT APPROVEMENT SHEET</title><style>
+@page{size:A4 portrait;margin:10mm 14mm}
+*{box-sizing:border-box}
+body{font-family:'Sarabun','Tahoma',Arial,sans-serif;font-size:11pt;color:#000;margin:0;padding:0}
+.outer{border:2px solid #000}
+.hdr{display:flex;align-items:center;padding:6px 10px;border-bottom:2px solid #000;gap:4px}
+.hdr-title{flex:1;text-align:center;font-size:16pt;font-weight:900;letter-spacing:.5px}
+.fr{padding:4px 10px;border-bottom:1px solid #000;display:flex;align-items:flex-start;gap:6px;min-height:22px}
+.fl{font-weight:700;white-space:nowrap}
+.concept{padding:6px 10px 10px;border-bottom:1px solid #000;min-height:155mm}
+.sigrow{display:flex;border-bottom:1px solid #000}
+.sigcell{flex:1;padding:4px 10px;border-right:1px solid #000;min-height:22px}
+.sigcell:last-child{border-right:none}
+.sigline{display:inline-block;min-width:100px;border-bottom:1px solid #000;margin-left:4px}
+.sec2{border-top:2px solid #000}
+.cb{display:inline-block;width:12px;height:12px;border:1.5px solid #000;margin-right:5px;text-align:center;font-size:9pt;line-height:12px;vertical-align:middle}
+table{border-collapse:collapse;width:100%}
+.ack th,.ack td{border:1px solid #000;padding:3px 8px;text-align:center}
+.ack td:first-child{font-weight:600;text-align:left;padding-left:8px}
+.ack td{height:28px}
+.si{margin:2px 0;line-height:1.5}.sn{font-weight:700}
+.ss{color:#444;font-size:10pt;margin-left:26px}
+.formno{text-align:right;font-size:9pt;padding:2px 8px;color:#555;border-top:1px solid #000}
+</style></head><body>
+<div class="outer">
+  <div class="hdr">
+    <div>${GCM_PTA_LOGO_SVG}</div>
+    <div class="hdr-title">EXAPILOT APPROVEMENT SHEET</div>
+    <div style="width:130px"></div>
+  </div>
+  <div class="fr"><span class="fl">Plant :</span><span>${escH(form.plant)}</span></div>
+  <div class="fr"><span class="fl">Topic :</span><span>${escH(procName)}</span></div>
+  <div class="concept">
+    <div class="fl">Concept detail :</div>
+    <div style="margin-top:5px">${stepRows||'<i style="color:#888">(ยังไม่มีขั้นตอน)</i>'}</div>
+  </div>
+  <div class="sigrow"><div class="sigcell">Create by B/M <span class="sigline">${escH(form.createBy)}</span></div><div class="sigcell">Date <span class="sigline">${escH(form.createDate)}</span></div></div>
+  <div class="sigrow"><div class="sigcell">Check by F/M <span class="sigline">${escH(form.checkByFM)}</span></div><div class="sigcell">Date <span class="sigline">${escH(form.checkDate)}</span></div></div>
+  <div class="sigrow"><div class="sigcell">Approve by Sect. Mgr. <span class="sigline">${escH(form.approveSect)}</span></div><div class="sigcell">Date <span class="sigline">${escH(form.approveDate)}</span></div></div>
+  <div class="sec2">
+    <div class="fr"><span class="fl">Exapilot Num. :</span><span>${escH(form.exapilotNum)}</span></div>
+    <div class="fr" style="flex-direction:column;gap:4px">
+      <div style="font-weight:700">After program create finished</div>
+      <div><span class="cb">${form.seqComplete?'✓':''}</span>Sequence complete by off line test</div>
+      <div><span class="cb">${form.notRelateIL?'✓':''}</span>Not relate with I/L</div>
+    </div>
+    <div class="sigrow"><div class="sigcell">Test by F/O <span class="sigline">${escH(form.testFO)}</span></div><div class="sigcell">Date <span class="sigline">${escH(form.testFODate)}</span></div></div>
+    <div class="sigrow"><div class="sigcell">Test by B/M <span class="sigline">${escH(form.testBM)}</span></div><div class="sigcell">Date <span class="sigline">${escH(form.testBMDate)}</span></div></div>
+    <div class="sigrow"><div class="sigcell">Check by F/M <span class="sigline">${escH(form.checkFM2)}</span></div><div class="sigcell">Date <span class="sigline">${escH(form.checkFM2Date)}</span></div></div>
+    <div class="sigrow" style="border-bottom:1px solid #000"><div class="sigcell" style="flex:2">Approve for start apply by Sect. Mng. <span class="sigline">${escH(form.approveMng)}</span></div><div class="sigcell">Date <span class="sigline">${escH(form.approveMngDate)}</span></div></div>
+  </div>
+  <div style="padding:6px 10px">
+    <div style="font-weight:700;margin-bottom:4px">Acknowledgement</div>
+    <table class="ack"><thead><tr><th>Shift</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
+    <tbody><tr><td>F/O1</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>F/O2</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B/M</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>F/M</td><td></td><td></td><td></td><td></td></tr></tbody></table>
+  </div>
+  <div class="formno">PE-F-0054-03</div>
+</div></body></html>`;
+  };
+
+  const handlePrint = () => {
+    const w = window.open('', '_blank', 'width=900,height=1200');
+    if (!w) { alert('กรุณาอนุญาต popup ใน browser เพื่อพิมพ์'); return; }
+    w.document.write(buildPrintHTML());
+    w.document.close();
+    setTimeout(() => { w.focus(); w.print(); }, 400);
+  };
+
+  const handleCopy = () => {
+    const txt = [
+      'EXAPILOT APPROVEMENT SHEET  PE-F-0054-03',
+      `Plant: ${form.plant}`,
+      `Topic: ${procName}`,
+      `Exapilot Num.: ${form.exapilotNum}`,
+      '',
+      'Concept detail / Procedure Steps:',
+      ...steps.map(s=>`${s.num}. [${s.type}] ${s.main}${s.sub?'\n   └─ '+s.sub:''}`),
+      '',
+      `Create by B/M: ${form.createBy||'_________'}   Date: ${form.createDate||'_________'}`,
+      `Check by F/M:  ${form.checkByFM||'_________'}   Date: ${form.checkDate||'_________'}`,
+      `Approve by Sect. Mgr.: ${form.approveSect||'_________'}   Date: ${form.approveDate||'_________'}`,
+    ].join('\n');
+    navigator.clipboard.writeText(txt).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2500); });
+  };
+
+  const fld = { width:'100%', padding:'5px 9px', border:'1px solid var(--border)', borderRadius:6, fontSize:13, outline:'none', background:'var(--surface-2)' };
+  const lbl = { fontSize:11, fontWeight:700, color:'var(--text-2)', display:'block', marginBottom:3, textTransform:'uppercase', letterSpacing:'.4px' };
+  const r2  = { display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 };
+  const sectionTitle = (t) => <div style={{fontSize:11.5,fontWeight:700,color:'var(--primary)',textTransform:'uppercase',letterSpacing:'.4px',marginBottom:8,paddingBottom:4,borderBottom:'1px solid var(--primary-soft)'}}>{t}</div>;
+
+  return (
+    <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal" style={{width:700,maxWidth:'96vw',maxHeight:'92vh',display:'flex',flexDirection:'column'}}>
+
+        {/* Header */}
+        <div className="modal-head" style={{background:'linear-gradient(135deg,#1a237e 0%,#0d47a1 100%)'}}>
+          <div className="mh-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="20" height="20">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
+          <div>
+            <div className="mh-type">ฟอร์มขออนุมัติ GCM PTA</div>
+            <div className="mh-title">EXAPILOT APPROVEMENT SHEET — PE-F-0054-03</div>
+          </div>
+          <button onClick={onClose} style={{marginLeft:'auto',background:'rgba(255,255,255,.15)',border:'none',color:'#fff',borderRadius:7,padding:'5px 12px',cursor:'pointer',fontSize:13}}>✕ ปิด</button>
+        </div>
+
+        {/* Step Preview Banner */}
+        <div style={{background:'var(--primary-soft)',borderBottom:'1px solid var(--border)',padding:'10px 16px',maxHeight:130,overflowY:'auto'}}>
+          <div style={{fontSize:11.5,fontWeight:700,color:'var(--primary)',marginBottom:5}}>
+            ✦ Procedure: <strong>{procName}</strong> — {steps.length} ขั้นตอน (auto-generated จาก Flowchart)
+          </div>
+          {steps.length===0 && <div style={{color:'var(--text-muted)',fontSize:12}}>⚠ ยังไม่มีขั้นตอน — กรุณาสร้าง Flowchart ก่อน</div>}
+          {steps.map(s=>(
+            <div key={s.num} style={{fontSize:12,lineHeight:1.7,color:'var(--text-2)'}}>
+              <strong style={{color:'var(--text)'}}>{s.num}.</strong>{' '}
+              <span style={{background:'var(--border)',borderRadius:3,padding:'0 5px',fontSize:11,fontWeight:700,color:'var(--text-2)'}}>{s.type}</span>{' '}
+              {s.main}
+              {s.sub && <span style={{color:'#D32F2F',marginLeft:6,fontSize:11}}>└─ {s.sub}</span>}
+            </div>
+          ))}
+        </div>
+
+        {/* Form Fill */}
+        <div style={{flex:1,overflowY:'auto',padding:'16px 20px'}}>
+
+          {/* Plant + Exapilot Num */}
+          <div style={r2}>
+            <div><label style={lbl}>Plant</label><input style={fld} value={form.plant} onChange={e=>set('plant',e.target.value)} placeholder="เช่น PTA#1"/></div>
+            <div><label style={lbl}>Exapilot Num.</label><input style={fld} value={form.exapilotNum} onChange={e=>set('exapilotNum',e.target.value)} placeholder="เช่น #PTA_49_PP404_WASH"/></div>
+          </div>
+
+          <div style={{height:1,background:'var(--border)',margin:'4px 0 14px'}}/>
+          {sectionTitle('ผู้เกี่ยวข้อง — ก่อน Program Create')}
+          {[['Create by B/M','createBy','createDate'],['Check by F/M','checkByFM','checkDate'],['Approve by Sect. Mgr.','approveSect','approveDate']].map(([label,k,dk])=>(
+            <div key={k} style={r2}>
+              <div><label style={lbl}>{label}</label><input style={fld} value={form[k]} onChange={e=>set(k,e.target.value)} placeholder="ชื่อ-นามสกุล"/></div>
+              <div><label style={lbl}>Date</label><input style={fld} value={form[dk]} onChange={e=>set(dk,e.target.value)} placeholder="dd/mm/yy"/></div>
+            </div>
+          ))}
+
+          <div style={{height:1,background:'var(--border)',margin:'4px 0 14px'}}/>
+          {sectionTitle('หลัง Program Create Finished')}
+          <div style={{display:'flex',gap:24,marginBottom:14}}>
+            {[['seqComplete','Sequence complete by off line test'],['notRelateIL','Not relate with I/L']].map(([k,label])=>(
+              <label key={k} style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',fontSize:13}}>
+                <input type="checkbox" checked={form[k]} onChange={e=>set(k,e.target.checked)} style={{width:16,height:16}}/>
+                {label}
+              </label>
+            ))}
+          </div>
+          {[['Test by F/O','testFO','testFODate'],['Test by B/M','testBM','testBMDate'],['Check by F/M','checkFM2','checkFM2Date'],['Approve for start apply by Sect. Mng.','approveMng','approveMngDate']].map(([label,k,dk])=>(
+            <div key={k} style={r2}>
+              <div><label style={lbl}>{label}</label><input style={fld} value={form[k]} onChange={e=>set(k,e.target.value)} placeholder="ชื่อ-นามสกุล"/></div>
+              <div><label style={lbl}>Date</label><input style={fld} value={form[dk]} onChange={e=>set(dk,e.target.value)} placeholder="dd/mm/yy"/></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div style={{borderTop:'1px solid var(--border)',padding:'12px 20px',display:'flex',gap:10,justifyContent:'flex-end',background:'var(--surface-2)'}}>
+          <button onClick={handleCopy} style={{padding:'8px 18px',border:'1px solid var(--border)',borderRadius:7,cursor:'pointer',fontSize:13,background:'#fff',fontWeight:600,minWidth:130}}>
+            {copied?'✓ คัดลอกแล้ว!':'📋 Copy Text'}
+          </button>
+          <button onClick={handlePrint}
+            style={{padding:'8px 24px',background:'linear-gradient(135deg,#1a237e,#1565C0)',color:'#fff',border:'none',borderRadius:7,cursor:'pointer',fontSize:13,fontWeight:700,boxShadow:'0 3px 10px rgba(21,101,192,.35)'}}>
+            🖨 Print / Save PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function HelpModal({ onClose }) {
   const [tab, setTab] = useState('start');
   const tabs = [
@@ -4275,6 +4567,7 @@ function App() {
   const [modal, setModal] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
+  const [showApproval, setShowApproval] = useState(false);
   const engineRef = useRef(null);
 
   /* ---- Persist via V3 IndexedDB Architecture ---- */
@@ -4619,6 +4912,15 @@ function App() {
           <button className="tbtn ghost" onClick={clearAll}>{Icon.clear}<span className="tbtn-label">Clear</span></button>
 
           <div className="divider-v"></div>
+          <button className="tbtn" onClick={() => setShowApproval(true)}
+            style={{background:'linear-gradient(135deg,#1a237e,#1565C0)',color:'#fff',border:'1px solid rgba(255,255,255,.2)',boxShadow:'0 3px 10px rgba(21,101,192,.35)'}}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{width:14,height:14}}>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            <span className="tbtn-label">Approval</span>
+          </button>
           <button className="tbtn" style={{background:'rgba(255,255,255,.08)',color:'#fff',border:'1px solid rgba(255,255,255,.2)'}} onClick={() => setShowHelp(true)}>{Icon.help}<span className="tbtn-label">คู่มือ</span></button>
         </div>
       </header>
@@ -4674,6 +4976,7 @@ function App() {
       {modal && <MsgModal data={modal} onResolve={modal.resolve}/>}
       {showHelp && <HelpModal onClose={() => setShowHelp(false)}/>}
       {showWizard && <AutoWizardModal onClose={() => setShowWizard(false)} onGenerate={applyWizard}/>}
+      {showApproval && <ApprovalModal onClose={() => setShowApproval(false)} procName={procName} nodes={nodes} edges={edges}/>}
 
       {/* Glass Badge Signature */}
       <GlassBadge status="online" />
