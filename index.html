@@ -569,11 +569,16 @@ button { cursor: pointer; }
   background: #F5F7FA;
 }
 
-/* AND gate = Sea blue hexagon, OR gate = Violet hexagon */
-.node.cat-and .node-body::before { background: #E6F4FF; border: 1.5px solid #1D4ED8; }
+/* AND gate = Sea blue rect, OR gate = Violet rect */
+.node.cat-and .node-body { background: #E6F4FF; border-color: #1D4ED8; }
 .node.cat-and .nh-icon { background: #DBEAFE; color: #1D4ED8; }
-.node.cat-or .node-body::before { background: #F5F3FF; border: 1.5px solid #7C3AED; }
+.node.cat-and.selected .node-body { border-color: #1D4ED8; box-shadow: 0 0 0 3px rgba(29,78,216,.2), var(--shadow-2); }
+.node.cat-or .node-body { background: #F5F3FF; border-color: #7C3AED; }
 .node.cat-or .nh-icon { background: #EDE9FE; color: #7C3AED; }
+.node.cat-or.selected .node-body { border-color: #7C3AED; box-shadow: 0 0 0 3px rgba(124,58,237,.2), var(--shadow-2); }
+.node.cat-condition .node-body { background: #F0F7FF; border-color: #1858BF; }
+.node.cat-condition .nh-icon { background: #DBEAFE; color: #1858BF; }
+.node.cat-condition.selected .node-body { border-color: #1858BF; box-shadow: 0 0 0 3px rgba(24,88,191,.2), var(--shadow-2); }
 
 /* Diamond Branch Shape */
 .node.shape-diamond .node-body {
@@ -1529,7 +1534,7 @@ const NODE_TYPES = {
   andor: {
     label: 'AND / OR Gate', shortLabel: 'AND/OR',
     sub: 'ตรวจสอบเงื่อนไข tag',
-    icon: Icon.andor, cat: 'condition', shape: 'hex',
+    icon: Icon.andor, cat: 'condition', shape: 'rect',
     handles: { in: true, out: 'yes_no' },
     defaultConfig: {
       mode: 'AND',
@@ -1664,7 +1669,7 @@ const NODE_TYPES = {
   and: {
     label: 'AND Gate', shortLabel: 'AND',
     sub: 'เงื่อนไขทุกตัวต้องผ่าน',
-    icon: Icon.andor, cat: 'and', shape: 'hex',
+    icon: Icon.andor, cat: 'and', shape: 'rect',
     handles: { in: true, out: 'yes_no' },
     defaultConfig: { conditions: [{ left: '', op: '==', right: '' }], onError: 'running' },
     describe: c => (c.conditions || []).map(x => `${x.left||'?'} ${x.op} ${x.right||'?'}`).join('\n∧ AND\n'),
@@ -1673,7 +1678,7 @@ const NODE_TYPES = {
   or: {
     label: 'OR Gate', shortLabel: 'OR',
     sub: 'เงื่อนไขอย่างน้อย 1 ตัวต้องผ่าน',
-    icon: Icon.andor, cat: 'or', shape: 'hex',
+    icon: Icon.andor, cat: 'or', shape: 'rect',
     handles: { in: true, out: 'yes_no' },
     defaultConfig: { conditions: [{ left: '', op: '==', right: '' }], onError: 'running' },
     describe: c => (c.conditions || []).map(x => `${x.left||'?'} ${x.op} ${x.right||'?'}`).join('\n∨ OR\n'),
@@ -2754,10 +2759,8 @@ function NodeView({ node, selected, status, onMouseDown, onSelect, onDelete, onH
               <>
                 <div className={`handle h-yes ${connecting?.fromNode === node.id && connecting?.fromHandle === 'yes' ? 'connecting' : ''}`}
                      onMouseDown={(e) => { e.stopPropagation(); onHandleClick(node.id, 'yes', 0, e); }}/>
-                <div className="handle-label yes">YES</div>
                 <div className={`handle h-no ${connecting?.fromNode === node.id && connecting?.fromHandle === 'no' ? 'connecting' : ''}`}
                      onMouseDown={(e) => { e.stopPropagation(); onHandleClick(node.id, 'no', 0, e); }}/>
-                <div className="handle-label no">NO</div>
               </>
             )}
             {def.handles.out === 'parallel_out' && (
