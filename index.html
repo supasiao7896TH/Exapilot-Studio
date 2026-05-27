@@ -3831,14 +3831,19 @@ function HelpModal({ onClose }) {
       <div>
         <h3 style={{marginTop:0,color:'var(--primary)'}}>วิธีใช้งาน Exapilot Studio</h3>
         <ol style={{paddingLeft:18,lineHeight:2}}>
-          <li><strong>ลาก Block</strong> จาก Palette (ซ้าย) มาวางบน Canvas</li>
-          <li><strong>เชื่อม Block</strong> โดย hover ที่ block แล้วคลิก handle สี่เหลี่ยมที่ขอบ</li>
+          <li><strong>ลาก Block</strong> จาก Palette (ซ้าย) มาวางบน Canvas — ค้นหา block ได้จากช่อง 🔍 ด้านบน Palette</li>
+          <li><strong>เชื่อม Block</strong> โดย hover ที่ block แล้วลาก handle (■) จากขอบไปยัง block ปลายทาง</li>
           <li><strong>กำหนด Properties</strong> โดยคลิก block แล้วแก้ไขในแผง Properties (ขวา)</li>
-          <li><strong>กด ▶ Run</strong> เพื่อทดสอบ procedure (ต้องมี START และ END)</li>
-          <li><strong>ดู Coach</strong> tab เพื่อตรวจสอบข้อผิดพลาดก่อนรัน</li>
+          <li><strong>ตรวจสอบ Coach</strong> tab — ต้องไม่มี ERROR (🔴) ก่อนรัน</li>
+          <li><strong>กด ▶ Run</strong> เพื่อจำลองการทำงาน ดู log ใน Execution Console ด้านล่าง</li>
         </ol>
-        <div style={{background:'var(--primary-soft)',padding:'10px 14px',borderRadius:8,borderLeft:'3px solid var(--primary)',marginTop:12}}>
-          <strong>💡 เคล็ดลับ:</strong> กด "ตัวอย่าง" ในแถบเครื่องมือเพื่อโหลด procedure ตัวอย่างและเรียนรู้จากโครงสร้างจริง
+        <div style={{display:'grid',gap:8,marginTop:12}}>
+          <div style={{background:'var(--primary-soft)',padding:'10px 14px',borderRadius:8,borderLeft:'3px solid var(--primary)'}}>
+            <strong>⚡ Auto-Generate:</strong> กดปุ่ม <strong>✦ Auto-Generate</strong> ในแถบเครื่องมือเพื่อสร้าง Flowchart อัตโนมัติจาก Wizard — เร็วกว่าสร้างจากศูนย์
+          </div>
+          <div style={{background:'var(--primary-soft)',padding:'10px 14px',borderRadius:8,borderLeft:'3px solid var(--primary)'}}>
+            <strong>💡 เคล็ดลับ:</strong> กด <strong>"ตัวอย่าง"</strong> ในแถบเครื่องมือเพื่อโหลด procedure ตัวอย่างและเรียนรู้จากโครงสร้างจริง
+          </div>
         </div>
       </div>
     ),
@@ -3847,27 +3852,27 @@ function HelpModal({ onClose }) {
         <h3 style={{marginTop:0,color:'var(--primary)'}}>สัญลักษณ์ Block ใน Exapilot</h3>
         <table style={{width:'100%',borderCollapse:'collapse',fontSize:12.5}}>
           <thead><tr style={{background:'var(--surface-2)'}}>
-            <th style={{padding:'6px 8px',textAlign:'left',borderBottom:'1px solid var(--border)'}}>สัญลักษณ์</th>
+            <th style={{padding:'6px 8px',textAlign:'left',borderBottom:'1px solid var(--border)'}}>รูปทรง / สี</th>
             <th style={{padding:'6px 8px',textAlign:'left',borderBottom:'1px solid var(--border)'}}>ชื่อ</th>
             <th style={{padding:'6px 8px',textAlign:'left',borderBottom:'1px solid var(--border)'}}>หน้าที่</th>
           </tr></thead>
           <tbody>
             {[
-              ['💊 แคปซูลน้ำเงิน','START','จุดเริ่มต้น procedure'],
+              ['💊 แคปซูลน้ำเงิน','START','จุดเริ่มต้น procedure (มีได้ 1 ตัว)'],
               ['💊 แคปซูลแดง','END','จุดสิ้นสุด procedure'],
-              ['⬡ หกเหลี่ยมน้ำเงิน','AND Gate','ตรวจเงื่อนไข AND — ทุกตัวต้องผ่าน'],
-              ['⬡ หกเหลี่ยมม่วง','OR Gate','ตรวจเงื่อนไข OR — ผ่านอย่างน้อย 1'],
-              ['◇ เพชร','Branch','แยก flow ตามค่าตัวแปร (case/switch)'],
-              ['⬛ แถบน้ำเงิน','Output to PCS','ส่งค่าไป DCS tag (setpoint, MV)'],
-              ['⬛ แถบ teal','Block Mode','เปลี่ยน mode ของ DCS block'],
-              ['⬛ แถบ indigo','Confirmation','ขอให้ operator ยืนยันก่อนดำเนินการ'],
-              ['⬛ แถบ cyan','Guidance','แสดงข้อความแนะนำ (ไม่ต้องยืนยัน)'],
-              ['⬛ แถบแดง','Alarm','แสดง alarm ที่ operator ต้อง acknowledge'],
-              ['⬛ นาฬิกา','Timer','หน่วงเวลา N วินาที'],
-              ['⬛ ▶ นาฬิกา','Start Timer','เริ่มนับ timer'],
-              ['⬛ ■ นาฬิกา','Stop Timer','หยุด timer'],
-              ['○ เขียว','Input Connector','รับ flow จาก Output Connector ชื่อเดียวกัน'],
-              ['○ เขียว','Output Connector','ส่ง flow ไป Input Connector ชื่อเดียวกัน'],
+              ['🟦 สี่เหลี่ยมน้ำเงิน','AND / OR Gate','ตรวจเงื่อนไขหลายตัว — เลือกโหมด AND หรือ OR'],
+              ['🟦 น้ำเงินเข้ม','AND Gate','ทุกเงื่อนไขต้อง TRUE → YES'],
+              ['🟣 ม่วง','OR Gate','อย่างน้อย 1 เงื่อนไข TRUE → YES'],
+              ['◇ เพชร','Branch','แยก flow ตามค่าตัวแปร (สูงสุด 10 case + else)'],
+              ['⬛ แถบน้ำเงิน','Output to PCS','ส่งค่าตัวเลขไป DCS tag (สูงสุด 5 tag/block)'],
+              ['⬛ แถบ teal','Block Mode','เปลี่ยน mode AUT/MAN/CAS ของ DCS block'],
+              ['⬛ แถบ indigo','Confirmation','รอ operator กด OK ก่อนเดินต่อ'],
+              ['⬛ แถบ cyan','Guidance','แสดงข้อความแนะนำ (เดินต่อทันที)'],
+              ['⬛ แถบแดง','Alarm','แจ้งเตือน — ต้อง acknowledge ก่อนเดินต่อ'],
+              ['⬛ นาฬิกา','Timer (Seconds)','หน่วงเวลา N วินาทีแล้วเดินต่อ'],
+              ['⬛ ▶ นาฬิกา','Start / Stop / Pause Timer','ควบคุม timer ที่กำหนด'],
+              ['⬛ ตรวจเวลา','Check Elapsed Time','ตรวจว่า timer ครบเวลาหรือยัง → YES/NO'],
+              ['○ วงกลม','Input / Output Connector','เชื่อม flow ข้ามส่วนของ diagram'],
             ].map(([sym,name,desc],i) => (
               <tr key={i} style={{borderBottom:'1px solid var(--border)'}}>
                 <td style={{padding:'5px 8px'}}>{sym}</td>
@@ -3882,12 +3887,15 @@ function HelpModal({ onClose }) {
     connect: (
       <div>
         <h3 style={{marginTop:0,color:'var(--primary)'}}>การเชื่อมต่อ Block</h3>
-        <div style={{display:'grid',gap:10}}>
+        <div style={{background:'#FEF9C3',padding:'10px 14px',borderRadius:8,borderLeft:'3px solid #CA8A04',marginBottom:12,fontSize:12.5}}>
+          <strong>วิธีต่อเส้น:</strong> hover block → ลาก handle (■) จากขอบ → ปล่อยที่ block ปลายทาง
+        </div>
+        <div style={{display:'grid',gap:8}}>
           {[
-            ['Scale / ทิศทางของสาย','เส้นปกติจะเป็นมุมหักเลี้ยวแบบฉาก 5-Segment'],
-            ['เส้นสีเขียว (YES)','จาก AND/OR/CHK TIME เมื่อเงื่อนไขผ่าน'],
-            ['เส้นสีแดง (NO)','จาก AND/OR/CHK TIME เมื่อเงื่อนไขไม่ผ่าน — มักวนกลับ'],
-            ['เส้นประสีส้ม (REP)','Repetition — วนลูปกลับ block ก่อนหน้า'],
+            ['⬜ Standard (เทา)','เส้นปกติ — ใช้กับทุก block'],
+            ['🟢 YES (เขียว)','เงื่อนไขผ่าน — ออกจาก AND/OR Gate'],
+            ['🔴 NO (แดง)','เงื่อนไขไม่ผ่าน — มักวนกลับไป Timer แล้ว loop'],
+            ['🟠 REP ประ (ส้ม)','Repetition — วนลูปกลับ block ก่อนหน้า'],
           ].map(([label,desc],i) => (
             <div key={i} style={{background:'var(--surface-2)',padding:'8px 12px',borderRadius:8,border:'1px solid var(--border)'}}>
               <strong>{label}</strong>
@@ -3895,8 +3903,9 @@ function HelpModal({ onClose }) {
             </div>
           ))}
         </div>
-        <div style={{background:'#FEF9C3',padding:'10px 14px',borderRadius:8,borderLeft:'3px solid #CA8A04',marginTop:12,fontSize:12.5}}>
-          <strong>⚠ เชื่อมต่ออย่างไร:</strong> hover block → คลิก handle (■ สี่เหลี่ยม) ที่ขอบล่าง → เคลื่อนไปยัง block ปลายทาง → คลิก handle ขอบบน (▲) เพื่อสร้างเส้น
+        <div style={{background:'var(--primary-soft)',padding:'10px 14px',borderRadius:8,borderLeft:'3px solid var(--primary)',marginTop:12,fontSize:12.5}}>
+          <strong>🖱 คลิกขวาที่เส้น</strong> เพื่อเปลี่ยนชนิดเส้น (Standard / YES / NO / Repetition) หรือลบเส้นเชื่อม<br/>
+          <strong>🖱 ลากจุดกลางเส้น (■)</strong> เพื่อปรับแนวเส้นให้ไม่ทับกัน
         </div>
       </div>
     ),
@@ -3905,12 +3914,9 @@ function HelpModal({ onClose }) {
         <h3 style={{marginTop:0,color:'var(--primary)'}}>การรัน Procedure</h3>
         <div style={{display:'grid',gap:8}}>
           {[
-            ['▶ Run','เริ่มรัน procedure — block ที่กำลังทำงานจะกระพริบสีเขียว'],
-            ['⏸ Pause','หยุดชั่วคราว — ทำต่อด้วย Resume'],
-            ['▶ Resume','รันต่อจากจุดที่หยุด'],
-            ['■ Stop','หยุดทันที — ต้องกด Reset ก่อนรันใหม่'],
-            ['↺ Reset','ล้างสถานะการรัน — ไม่ลบ procedure'],
-            ['Speed','ปรับความเร็วการจำลอง 0.5× ถึง 10×'],
+            ['▶ Run','เริ่มจำลองการทำงาน — block ที่กำลังทำงานจะกระพริบสีเขียว'],
+            ['↺ Reset','หยุดและรีเซ็ตกลับสู่สถานะเริ่มต้น — ไม่ลบ procedure'],
+            ['Speed  1×/2×/4×/8×','ปรับความเร็วการจำลอง'],
           ].map(([btn,desc],i) => (
             <div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',background:'var(--surface-2)',padding:'8px 12px',borderRadius:8,border:'1px solid var(--border)'}}>
               <code style={{background:'#fff',border:'1px solid var(--border)',padding:'2px 8px',borderRadius:5,fontWeight:700,whiteSpace:'nowrap',flexShrink:0,fontSize:12}}>{btn}</code>
@@ -3918,25 +3924,30 @@ function HelpModal({ onClose }) {
             </div>
           ))}
         </div>
-        <div style={{background:'var(--ok-soft)',padding:'10px 14px',borderRadius:8,borderLeft:'3px solid var(--ok)',marginTop:12,fontSize:12.5}}>
-          <strong>สถานะสี Block ระหว่างรัน:</strong><br/>
-          🟢 กำลังทำงาน (Processing) &nbsp;|&nbsp; 🟡 หยุดชั่วคราว (Paused) &nbsp;|&nbsp; ⬜ เสร็จแล้ว (Finished)
+        <div style={{background:'var(--ok-soft)',padding:'10px 14px',borderRadius:8,borderLeft:'3px solid var(--ok)',marginTop:10,fontSize:12.5}}>
+          <strong>สถานะ Toolbar ระหว่างรัน:</strong><br/>
+          🟢 <strong>RUNNING</strong> — กำลังทำงาน &nbsp;|&nbsp; 🟡 <strong>PAUSED</strong> — หยุดรอ Operator &nbsp;|&nbsp; ⚪ <strong>READY</strong> — พร้อมรัน
+        </div>
+        <div style={{background:'var(--primary-soft)',padding:'10px 14px',borderRadius:8,borderLeft:'3px solid var(--primary)',marginTop:8,fontSize:12.5}}>
+          <strong>📋 Execution Console</strong> (ด้านล่าง) แสดง log ทุก step แบบ real-time — ดูค่า tag ก่อน/หลังเปลี่ยน และผล YES/NO ของเงื่อนไข
         </div>
       </div>
     ),
     keys: (
       <div>
-        <h3 style={{marginTop:0,color:'var(--primary)'}}>คีย์ลัด</h3>
+        <h3 style={{marginTop:0,color:'var(--primary)'}}>คีย์ลัด & เมาส์</h3>
         <table style={{width:'100%',borderCollapse:'collapse',fontSize:12.5}}>
           <tbody>
             {[
-              ['Delete / Backspace','ลบ block ที่เลือก'],
-              ['Escape','ยกเลิกการเชื่อมต่อ / ยกเลิกการเลือก'],
-              ['Scroll Wheel','Zoom in / out บน canvas'],
-              ['Drag canvas (พื้นที่ว่าง)','Pan เลื่อนมุมมอง'],
-              ['Drag block','ย้าย block'],
-              ['Click block','เลือก block (แสดง Properties)'],
-              ['Click เส้นเชื่อม','ลบเส้นเชื่อม (มี confirm)'],
+              ['Delete / Backspace','ลบ block ที่เลือกอยู่'],
+              ['Escape','ยกเลิกการลากเส้น / ยกเลิกการเลือก'],
+              ['Scroll Wheel','Zoom in / out บน Canvas'],
+              ['ลาก Canvas (พื้นที่ว่าง)','Pan เลื่อนมุมมอง'],
+              ['ลาก Block','ย้าย block'],
+              ['Click Block','เลือก block (เปิด Properties)'],
+              ['คลิกขวาที่เส้น','เปลี่ยนชนิดเส้น / ลบเส้นเชื่อม'],
+              ['ลากจุดกลางเส้น (■)','ปรับแนวเส้น'],
+              ['ปุ่ม Fit (⊞)','Zoom ให้พอดีหน้าจอ'],
             ].map(([key,desc],i) => (
               <tr key={i} style={{borderBottom:'1px solid var(--border)'}}>
                 <td style={{padding:'6px 8px'}}><code style={{background:'var(--surface-3)',padding:'2px 7px',borderRadius:5,fontWeight:700,fontSize:11.5,border:'1px solid var(--border)'}}>{key}</code></td>
