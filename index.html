@@ -4138,6 +4138,7 @@ function HelpModal({ onClose }) {
     { id: 'connect', label: '🔗 การเชื่อมต่อ' },
     { id: 'run', label: '▶ การรัน' },
     { id: 'keys', label: '⌨ คีย์ลัด' },
+    { id: 'approval', label: '📋 Approval' },
   ];
 
   const content = {
@@ -4270,6 +4271,55 @@ function HelpModal({ onClose }) {
             ))}
           </tbody>
         </table>
+      </div>
+    ),
+    approval: (
+      <div>
+        <h3 style={{marginTop:0,color:'var(--primary)'}}>Approval Sheet (ใบขออนุมัติ PE-F-0054-03)</h3>
+        <div style={{background:'var(--primary-soft)',padding:'10px 14px',borderRadius:8,borderLeft:'3px solid var(--primary)',marginBottom:12,fontSize:12.5}}>
+          <strong>วัตถุประสงค์:</strong> สร้างฟอร์มขออนุมัติ GCM PTA (PE-F-0054-03) อัตโนมัติจาก Flowchart ที่ออกแบบไว้ — พร้อมรายการขั้นตอนที่ระบบดึงมาให้อัตโนมัติ
+        </div>
+        <div style={{display:'grid',gap:8,marginBottom:12}}>
+          <div style={{background:'var(--surface-2)',padding:'10px 14px',borderRadius:8,border:'1px solid var(--border)'}}>
+            <div style={{fontWeight:700,marginBottom:6}}>🖱 วิธีเปิดใช้งาน</div>
+            <ol style={{paddingLeft:18,margin:0,lineHeight:1.9,fontSize:12.5}}>
+              <li>สร้าง Flowchart ใน Canvas ให้สมบูรณ์</li>
+              <li>กดปุ่ม <strong>📋 Approval</strong> บน Toolbar (แถบด้านบน ขวามือ)</li>
+              <li>กรอกข้อมูลในฟอร์ม แล้วกด <strong>🖨 Print</strong></li>
+            </ol>
+          </div>
+        </div>
+        <div style={{fontWeight:700,marginBottom:6,fontSize:12.5}}>📝 ข้อมูลที่กรอกในฟอร์ม</div>
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+          <tbody>
+            {[
+              ['Plant','ชื่อหน่วยงาน / Plant ที่รับผิดชอบ (เช่น PTA#1)'],
+              ['Topic','ชื่อ Procedure — ดึงจากชื่อที่ตั้งบน Toolbar อัตโนมัติ'],
+              ['Concept detail','อธิบายวัตถุประสงค์ / เหตุผลที่สร้าง Flowchart นี้'],
+              ['ขั้นตอน','ดึงจาก Flowchart อัตโนมัติ (START → END ตาม logic)'],
+              ['Create by B/M / Check by F/M / Approve','ชื่อผู้จัดทำ ผู้ตรวจ ผู้อนุมัติ และวันที่'],
+              ['Exapilot Num.','หมายเลข Program ใน Exapilot'],
+              ['After program create finished','เช็ค: Sequence complete / Not relate with I/L'],
+              ['Test by F/O / B/M / F/M / Sect. Mng.','ผู้ทดสอบและผู้อนุมัติใช้งานจริง'],
+              ['Acknowledgement','ตารางรับทราบ Shift A/B/C/D (F/O1, F/O2, B/M, F/M)'],
+            ].map(([field,desc],i) => (
+              <tr key={i} style={{borderBottom:'1px solid var(--border)'}}>
+                <td style={{padding:'5px 8px',fontWeight:600,whiteSpace:'nowrap',color:'var(--primary)'}}>{field}</td>
+                <td style={{padding:'5px 8px',color:'var(--text-2)'}}>{desc}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:12}}>
+          <div style={{background:'#ECFDF5',padding:'9px 12px',borderRadius:8,borderLeft:'3px solid #16A34A',fontSize:12}}>
+            <strong>🖨 Print</strong><br/>
+            เปิดหน้าต่างพิมพ์ A4 แนวตั้ง — เลือก Printer แล้วพิมพ์ได้เลย ระบบจัดหน้าให้อัตโนมัติ
+          </div>
+          <div style={{background:'#EFF6FF',padding:'9px 12px',borderRadius:8,borderLeft:'3px solid #3B82F6',fontSize:12}}>
+            <strong>📋 Copy Plain Text</strong><br/>
+            คัดลอกรายการขั้นตอนเป็น Text เพื่อนำไปใช้ใน Email หรือเอกสารอื่น
+          </div>
+        </div>
       </div>
     ),
   };
