@@ -2230,8 +2230,24 @@ function validateProcedure(nodes, edges, tags) {
     }
   }
 
-  // check reachability from START to END
+  // validate connector pairing
+  const inputConns  = nodes.filter(n => n.type === 'inputconn');
+  const outputConns = nodes.filter(n => n.type === 'outputconn');
+  outputConns.forEach(oc => {
+    const name = oc.config.connName || 'A';
+    const paired = inputConns.some(ic => (ic.config.connName || 'A') === name);
+    if (!paired) issues.push({ level: 'err', title: `OUT-CONN "${name}" ไม่มีคู่`, detail: `ไม่พบ Input Connector ชื่อ "${name}" — เพิ่ม IN-CONN ที่มีชื่อเดียวกัน`, nodeIds: [oc.id] });
+  });
+  inputConns.forEach(ic => {
+    const name = ic.config.connName || 'A';
+    const paired = outputConns.some(oc => (oc.config.connName || 'A') === name);
+    if (!paired) issues.push({ level: 'warn', title: `IN-CONN "${name}" ไม่มีคู่`, detail: `ไม่พบ Output Connector ชื่อ "${name}" ที่จะส่ง flow มา`, nodeIds: [ic.id] });
+  });
+
+  // check reachability from START to END (traverse connector jumps as virtual edges)
   if (starts.length === 1 && ends.length >= 1) {
+    const connMap = {};
+    inputConns.forEach(ic => { connMap[ic.config.connName || 'A'] = ic.id; });
     const visited = new Set();
     const stack = [starts[0].id];
     while (stack.length) {
@@ -2239,6 +2255,12 @@ function validateProcedure(nodes, edges, tags) {
       if (visited.has(id)) continue;
       visited.add(id);
       edges.filter(e => e.from === id).forEach(e => stack.push(e.to));
+      // follow connector jumps
+      const nd = byId[id];
+      if (nd && nd.type === 'outputconn') {
+        const tgt = connMap[nd.config.connName || 'A'];
+        if (tgt) stack.push(tgt);
+      }
     }
     if (!ends.some(e => visited.has(e.id))) {
       issues.push({ level: 'err', title: 'START ไปไม่ถึง END', detail: 'ไม่มีเส้นทางจาก START ไปถึง END — ตรวจสอบลูกศรเชื่อมระหว่าง block' });
@@ -2396,6 +2418,12 @@ class ExapilotEngine {
       }
 
       if (next) {
+        // Direct connector jump — outputconn teleports execution to a matching inputconn
+        if (next.kind === 'jump') {
+          await this.sleep(180);
+          currentId = next.targetId;
+          continue;
+        }
         // When a node returns 'out', also accept a 'rep' (Repetition) edge as a valid
         // outgoing path — REP edges are visually distinct loop-back arrows but behave
         // exactly like 'out' edges in the execution engine.
@@ -2512,11 +2540,15 @@ class ExapilotEngine {
         return { kind: passes ? 'yes' : 'no' };
       }
       case 'inputconn':
-        this.log('exec', `← Connector IN "${n.config.connName || 'A'}"`);
+        this.log('exec', `← Connector IN "${n.config.connName || 'A'}" — รับ flow เข้า`);
         return { kind: 'out' };
-      case 'outputconn':
-        this.log('exec', `→ Connector OUT "${n.config.connName || 'A'}"`);
-        return { kind: 'out' };
+      case 'outputconn': {
+        const connName = n.config.connName || 'A';
+        const target = this.nodes.find(nd => nd.type === 'inputconn' && (nd.config.connName || 'A') === connName);
+        if (!target) throw new Error(`Connector OUT "${connName}": ไม่พบ Input Connector ชื่อ "${connName}" ในผังนี้`);
+        this.log('exec', `→ Connector OUT "${connName}" — jump ไปยัง IN "${connName}"`);
+        return { kind: 'jump', targetId: target.id };
+      }
       case 'parallel1': {
         const conn1 = n.config.connections || 5;
         this.log('exec', `⇶ Parallel Split  (${conn1} connection points)`);
